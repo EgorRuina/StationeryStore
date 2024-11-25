@@ -34,8 +34,15 @@ namespace StationeryStore
             _commands = new Dictionary<string, Action>
                 (StringComparer.OrdinalIgnoreCase)
             {
+                { "/commands", LoadCommands },
                 { "/clear", Clear },
-                { "/products.info", LoadProductsInfo }
+                { "/products.info", LoadProductsInfo },
+                { "/products.type", LoadProductsType },
+                //{ "/managers.info", LoadManagersInfo },
+                //{ "/products.amount(max)", LoadProductsAmountMax },
+                //{ "/products.amount(min)", LoadProductsAmountMin},
+                //{ "/prodcuts.avgprice(min)", LoadProdutsAVGPriceMin },
+                //{ "/products.avgprice(max)", LoadProductsAVGPriceMax}
                 //{ "/sales.info", LoadSalesInfo } will add rest of the commands later
 
             };
@@ -91,11 +98,6 @@ namespace StationeryStore
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void button2_Click(object sender, EventArgs e) //Check available commands
-        {
-
-        }
-
         private void button3_Click(object sender, EventArgs e) //get back to connection wizard app
         {
 
@@ -109,7 +111,7 @@ namespace StationeryStore
                 {
                     conn.Open();
                     SqlCommand sqlCommand = new SqlCommand(
-                        "SELECT * FROM products", conn);
+                        "SELECT * FROM products;", conn);
                     SqlDataAdapter adapter = new SqlDataAdapter(sqlCommand);
                     DataTable dataTable = new DataTable();
                     adapter.Fill(dataTable);
@@ -130,6 +132,54 @@ namespace StationeryStore
                     richTextBox1.Text = $"An error occurred while loading products: " +
                         $"{ex.Message}";
                 }
+                conn.Close();
+            }
+        }
+
+        private void LoadProductsType()
+        {
+            using (SqlConnection conn = new SqlConnection(_connStr))
+            {
+                try
+                {
+                    conn.Open();
+                    SqlCommand sqlCommand = new SqlCommand(
+                        "SELECT DISTINCT ProductType FROM Products;", 
+                        conn);
+                    SqlDataAdapter adapter = new SqlDataAdapter(sqlCommand);
+                    DataTable dataTable = new DataTable();
+                    adapter.Fill(dataTable);
+
+                    foreach (DataRow dataRow in dataTable.Rows)
+                    {
+                        foreach (var item in dataRow.ItemArray)
+                        {
+                            richTextBox1.AppendText(item.ToString() + "\t");
+                        }
+                        richTextBox1.AppendText(Environment.NewLine);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    richTextBox1.Text = $"An error has occured: " +
+                        $"{ex.Message}";
+                }
+                conn.Close();
+            }
+        }
+
+        private void LoadCommands()
+        {
+            try
+            {
+                foreach(var command in _commands.Keys)
+                {
+                    richTextBox1.AppendText(command + Environment.NewLine);
+                }
+            }
+            catch(Exception ex)
+            {
+                richTextBox1.Text = $"An error has occured: {ex.Message}";
             }
         }
 
